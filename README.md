@@ -31,8 +31,10 @@ python -m gltr_sdnet.train --config gltr_sdnet/configs/default.yaml --dataset sy
 
 ### 3) Train on a real dataset (IRSTD-1k or NUDT-SIRST)
 
-Expected folder layout:
+#### Dataset structure options
+Pick one of the following layouts under `DATA_ROOT`.
 
+- Flat folders (simple):
 ```
 DATA_ROOT/
   images/
@@ -41,8 +43,32 @@ DATA_ROOT/
     xxx.png (binary mask 0/255)
 ```
 
-Run:
+- With splits subfolders (recommended):
+```
+DATA_ROOT/
+  images/
+    train/*.png
+    val/*.png
+    test/*.png
+  masks/
+    train/*.png
+    val/*.png
+    test/*.png
+```
 
+- With list files (flexible):
+```
+DATA_ROOT/
+  images/*.png
+  masks/*.png
+  splits/
+    train.txt
+    val.txt
+    test.txt
+```
+Each line in `train.txt`/`val.txt`/`test.txt` is a filename (with or without extension), e.g. `000123.png` or `000123`.
+
+#### Run training
 ```bash
 python -m gltr_sdnet.train --config gltr_sdnet/configs/default.yaml \
        --dataset custom --data-root /path/to/DATA_ROOT \

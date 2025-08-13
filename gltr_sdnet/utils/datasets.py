@@ -24,9 +24,26 @@ class IRTargetDataset(Dataset):
     def __init__(self, root: str, img_size: int = 512, split: str = 'train', augment: bool = True):
         super().__init__()
         self.root = root
-        self.img_dir = os.path.join(root, 'images')
-        self.mask_dir = os.path.join(root, 'masks')
-        self.names = sorted([n for n in os.listdir(self.img_dir) if n.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp'))])
+        # Prefer subfolders like images/train over flat images when available
+        img_dir_candidate = os.path.join(root, 'images', split)
+        mask_dir_candidate = os.path.join(root, 'masks', split)
+        if os.path.isdir(img_dir_candidate) and os.path.isdir(mask_dir_candidate):
+            self.img_dir = img_dir_candidate
+            self.mask_dir = mask_dir_candidate
+        else:
+            self.img_dir = os.path.join(root, 'images')
+            self.mask_dir = os.path.join(root, 'masks')
+        # Support optional split file lists: root/splits/{split}.txt
+        split_file = os.path.join(root, 'splits', f'{split}.txt')
+        if os.path.isfile(split_file):
+            with open(split_file, 'r') as f:
+                listed = [line.strip() for line in f if line.strip()]
+            # Keep entries that exist in img_dir
+            all_files = {n for n in os.listdir(self.img_dir)}
+            self.names = [n if os.path.splitext(n)[1] else n + '.png' for n in listed]
+            self.names = [n for n in self.names if n in all_files]
+        else:
+            self.names = sorted([n for n in os.listdir(self.img_dir) if n.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp'))])
         self.img_size = img_size
         self.split = split
         self.augment = augment and split == 'train'
@@ -63,7 +80,10 @@ class IRTargetDataset(Dataset):
     def __getitem__(self, idx: int):
         name = self.names[idx]
         img_path = os.path.join(self.img_dir, name)
-        mask_path = os.path.join(self.mask_dir, os.path.splitext(name)[0] + '.png')
+        # mask name uses same stem; try same extension first then fall back to .png
+        stem, ext = os.path.splitext(name)
+        cand_mask = os.path.join(self.mask_dir, stem + ext)
+        mask_path = cand_mask if os.path.isfile(cand_mask) else os.path.join(self.mask_dir, stem + '.png')
         img = _read_gray(img_path)
         mask = _read_gray(mask_path)
         mask = (mask > 127).astype(np.uint8) * 255
