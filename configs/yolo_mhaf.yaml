@@ -1,0 +1,120 @@
+# YOLO-MHAF模型配置文件
+# 用于花生叶片病害检测
+
+# 数据集配置
+path: ./data/peanut_disease  # 数据集根目录
+train: images/train          # 训练集路径（相对于path）
+val: images/val              # 验证集路径
+test: images/test            # 测试集路径
+
+# 类别配置
+nc: 5  # 类别数量
+names: 
+  0: Healthy        # 健康
+  1: Early_Blight   # 早疫病
+  2: Late_Blight    # 晚疫病
+  3: Leaf_Spot      # 叶斑病
+  4: Rust           # 锈病
+
+# 模型配置
+model:
+  type: yolo_mhaf_n
+  width_multiple: 0.25   # 宽度倍数
+  depth_multiple: 0.33   # 深度倍数
+  
+# 训练超参数
+hyperparameters:
+  # 优化器参数
+  lr0: 0.01              # 初始学习率
+  lrf: 0.01              # 最终学习率因子
+  momentum: 0.937        # SGD动量
+  weight_decay: 0.0005   # 权重衰减
+  warmup_epochs: 3.0     # 预热轮数
+  warmup_momentum: 0.8   # 预热动量
+  warmup_bias_lr: 0.1    # 预热偏置学习率
+  
+  # 损失函数权重
+  box: 0.05              # 边界框损失权重
+  cls: 0.5               # 分类损失权重
+  obj: 1.0               # 目标性损失权重
+  anchor_t: 4.0          # anchor阈值
+  
+  # Focal Loss参数
+  fl_gamma: 0.0          # focal loss gamma (0表示不使用)
+  
+  # 标签平滑
+  label_smoothing: 0.0   # 标签平滑系数
+  
+  # 数据增强参数
+  hsv_h: 0.015          # 色相增强
+  hsv_s: 0.7            # 饱和度增强
+  hsv_v: 0.4            # 明度增强
+  degrees: 0.0          # 旋转角度
+  translate: 0.1        # 平移
+  scale: 0.5            # 缩放
+  shear: 0.0            # 剪切
+  perspective: 0.0      # 透视变换
+  flipud: 0.0           # 上下翻转概率
+  fliplr: 0.5           # 左右翻转概率
+  mosaic: 1.0           # Mosaic增强概率
+  mixup: 0.0            # Mixup增强概率
+  copy_paste: 0.0       # Copy-paste增强概率
+
+# 训练配置
+training:
+  epochs: 300           # 训练轮数
+  batch_size: 16        # 批次大小
+  img_size: 640         # 图像尺寸
+  workers: 8            # 数据加载器工作进程数
+  
+  # 验证配置
+  val_interval: 5       # 验证间隔
+  save_period: 10       # 保存间隔
+  
+  # 早停配置
+  patience: 100         # 早停耐心值
+  
+  # 设备配置
+  device: ''            # 设备 ('', 'cpu', '0', '0,1,2,3')
+  
+# 推理配置
+inference:
+  conf_thres: 0.25      # 置信度阈值
+  iou_thres: 0.45       # NMS IoU阈值
+  max_det: 1000         # 最大检测数量
+  agnostic_nms: False   # 类别无关NMS
+  
+# 评估配置
+evaluation:
+  save_json: False      # 保存COCO格式结果
+  save_hybrid: False    # 保存混合标签
+  save_conf: False      # 保存置信度
+  save_txt: False       # 保存txt结果
+  
+# 可视化配置
+visualization:
+  plots: True           # 保存训练图表
+  save_dir: runs/train  # 保存目录
+
+# 模型架构特定配置
+architecture:
+  # Ghost模块配置
+  ghost:
+    ratio: 2            # Ghost比率
+    
+  # SPD-Conv配置
+  spd_conv:
+    dimension: 2        # 空间维度
+    
+  # 混合注意力配置
+  hybrid_attention:
+    use_ca: True        # 使用坐标注意力
+    use_eca: True       # 使用ECA注意力
+    reduction: 16       # 降维比率
+    
+  # AMFN配置
+  amfn:
+    num_levels: 3       # 特征层级数
+    num_bifpn_layers: 2 # BiFPN层数
+    use_carafe: True    # 使用CARAFE上采样
+    carafe_scale: 2     # CARAFE缩放因子
