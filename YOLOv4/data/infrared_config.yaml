@@ -1,0 +1,47 @@
+# 红外弱小目标检测配置文件
+dataset:
+  train: VOCdevkit/train.txt
+  val: VOCdevkit/val.txt
+  test: VOCdevkit/test.txt
+  nc: 1  # 类别数量（红外弱小目标）
+  names: ['infrared_target']  # 类别名称
+
+# 模型配置
+model:
+  backbone: 'resnet50'  # 骨干网络
+  neck: 'fpn'  # 特征金字塔网络
+  head: 'transformer'  # 检测头类型
+  input_size: [512, 512]  # 输入图像尺寸
+
+# 训练配置
+train:
+  batch_size: 8
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0005
+  momentum: 0.937
+  warmup_epochs: 3
+  warmup_momentum: 0.8
+  warmup_bias_lr: 0.1
+
+# 数据增强
+augmentation:
+  hsv_h: 0.015  # HSV色调增强
+  hsv_s: 0.7    # HSV饱和度增强
+  hsv_v: 0.4    # HSV亮度增强
+  degrees: 0.0  # 旋转角度（红外图像通常不旋转）
+  translate: 0.1  # 平移
+  scale: 0.5     # 缩放
+  shear: 0.0     # 剪切（红外图像通常不剪切）
+  perspective: 0.0  # 透视变换
+  flipud: 0.0    # 上下翻转
+  fliplr: 0.5    # 左右翻转
+  mosaic: 1.0    # Mosaic增强
+  mixup: 0.0     # Mixup增强
+
+# 检测配置
+detection:
+  conf_thres: 0.25  # 置信度阈值
+  iou_thres: 0.45   # NMS IoU阈值
+  max_det: 100      # 最大检测数量
+  classes: null     # 检测特定类别（null表示所有类别）
