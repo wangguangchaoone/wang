@@ -31,31 +31,50 @@ x(1) = 0;
 for n = 1:(N-1)
     u = input_signal(n);
     
-    % k1, g1
+    % k1 for y, g1 for x
+    % dy/dt = a*y - b*y^3 + r*(y-x) + u
+    % dx/dt = c*x - d*x^3 + r*(x-y)
     k1 = h * (a*y(n) - b*y(n)^3 + r*(y(n) - x(n)) + u);
     g1 = h * (c*x(n) - d*x(n)^3 + r*(x(n) - y(n)));
     
-    % k2, g2
-    k2 = h * (a*(y(n) + k1/2) - b*(y(n) + k1/2)^3 + ...
-              r*((y(n) + g1/2) - (x(n) + k1/2)) + u);
-    g2 = h * (c*(x(n) + g1/2) - d*(x(n) + g1/2)^3 + ...
-              r*((x(n) + k1/2) - (y(n) + g1/2)));
+    % k2 for y, g2 for x
+    y_temp = y(n) + k1/2;
+    x_temp = x(n) + g1/2;
+    k2 = h * (a*y_temp - b*y_temp^3 + r*(y_temp - x_temp) + u);
+    g2 = h * (c*x_temp - d*x_temp^3 + r*(x_temp - y_temp));
     
-    % k3, g3
-    k3 = h * (a*(y(n) + k2/2) - b*(y(n) + k2/2)^3 + ...
-              r*((y(n) + g2/2) - (x(n) + k2/2)) + u);
-    g3 = h * (c*(x(n) + g2/2) - d*(x(n) + g2/2)^3 + ...
-              r*((x(n) + k2/2) - (y(n) + g2/2)));
+    % k3 for y, g3 for x
+    y_temp = y(n) + k2/2;
+    x_temp = x(n) + g2/2;
+    k3 = h * (a*y_temp - b*y_temp^3 + r*(y_temp - x_temp) + u);
+    g3 = h * (c*x_temp - d*x_temp^3 + r*(x_temp - y_temp));
     
-    % k4, g4
-    k4 = h * (a*(y(n) + k3) - b*(y(n) + k3)^3 + ...
-              r*((y(n) + g3) - (x(n) + k3)) + u);
-    g4 = h * (c*(x(n) + g3) - d*(x(n) + g3)^3 + ...
-              r*((x(n) + k3) - (y(n) + g3)));
+    % k4 for y, g4 for x
+    y_temp = y(n) + k3;
+    x_temp = x(n) + g3;
+    k4 = h * (a*y_temp - b*y_temp^3 + r*(y_temp - x_temp) + u);
+    g4 = h * (c*x_temp - d*x_temp^3 + r*(x_temp - y_temp));
     
-    % Update
-    x(n+1) = x(n) + (1/6) * (k1 + 2*k2 + 2*k3 + k4);
-    y(n+1) = y(n) + (1/6) * (g1 + 2*g2 + 2*g3 + g4);
+    % Update: k updates y, g updates x
+    y(n+1) = y(n) + (1/6) * (k1 + 2*k2 + 2*k3 + k4);
+    x(n+1) = x(n) + (1/6) * (g1 + 2*g2 + 2*g3 + g4);
+    
+    % Check for numerical instability
+    if isnan(y(n+1)) || isinf(y(n+1)) || isnan(x(n+1)) || isinf(x(n+1))
+        warning('TDCBSR_RK4: Numerical instability detected at step %d', n);
+        % Clip to prevent further instability
+        if isnan(y(n+1)) || isinf(y(n+1))
+            y(n+1) = y(n);
+        end
+        if isnan(x(n+1)) || isinf(x(n+1))
+            x(n+1) = x(n);
+        end
+    end
+    
+    % Clip extremely large values to prevent overflow
+    max_val = 1e6;
+    y(n+1) = max(-max_val, min(max_val, y(n+1)));
+    x(n+1) = max(-max_val, min(max_val, x(n+1)));
 end
 
 end

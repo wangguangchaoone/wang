@@ -37,11 +37,12 @@ G = 10000;  % Parameter compensation (from paper)
 input_signal = s + D * noise;
 
 %% BSO optimization parameters
-param_ranges.a = [0.1, 5];    % Range for parameter a
-param_ranges.b = [0.1, 5];    % Range for parameter b
-param_ranges.c = [0.1, 5];    % Range for parameter c
-param_ranges.d = [0.1, 5];    % Range for parameter d
-param_ranges.r = [0.01, 2];   % Range for coupling coefficient r
+% For high-frequency signals, use scaled parameter ranges
+param_ranges.a = [0.5, 3.0];    % Range for parameter a
+param_ranges.b = [0.5, 3.0];    % Range for parameter b
+param_ranges.c = [0.5, 3.0];    % Range for parameter c
+param_ranges.d = [0.5, 3.0];    % Range for parameter d
+param_ranges.r = [0.1, 2.0];    % Range for coupling coefficient r
 
 max_iter = 100;   % Maximum iterations
 pop_size = 30;    % Population size

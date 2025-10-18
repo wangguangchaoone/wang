@@ -11,7 +11,18 @@ function SNR = calculate_SNR(output_signal, target_freqs, fs)
 % Outputs:
 %   SNR - Signal-to-noise ratio in dB
 
+% Check for invalid input
+if any(isnan(output_signal)) || any(isinf(output_signal))
+    SNR = -1000;  % Return penalty value
+    return;
+end
+
 N = length(output_signal);
+
+% Remove DC component
+output_signal = output_signal - mean(output_signal);
+
+% FFT and power spectrum
 Y = fft(output_signal);
 P = abs(Y/N).^2;  % Power spectrum
 
@@ -24,8 +35,9 @@ P = P(1:floor(N/2)+1);
 P_signal = 0;
 for i = 1:length(target_freqs)
     [~, idx] = min(abs(freq - target_freqs(i)));
-    % Sum power in a small window around the target frequency
-    window = max(1, idx-2):min(length(P), idx+2);
+    % Sum power in a small window around the target frequency (adaptive window size)
+    window_size = max(2, floor(N / (fs/target_freqs(i)) / 20));
+    window = max(1, idx-window_size):min(length(P), idx+window_size);
     P_signal = P_signal + sum(P(window));
 end
 
@@ -33,12 +45,18 @@ end
 P_total = sum(P);
 P_noise = P_total - P_signal;
 
-% Avoid division by zero
-if P_noise == 0
-    P_noise = eps;
+% Avoid division by zero or negative values
+if P_noise <= 0 || P_signal <= 0
+    P_noise = max(eps, P_noise);
+    P_signal = max(eps, P_signal);
 end
 
 % SNR in dB (Equation 8)
 SNR = 10 * log10(P_signal / P_noise);
+
+% Check for invalid result
+if isnan(SNR) || isinf(SNR)
+    SNR = -1000;  % Return penalty value
+end
 
 end

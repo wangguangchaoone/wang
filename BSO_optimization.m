@@ -152,14 +152,24 @@ function fitness = evaluate_fitness(params, input_signal, target_freqs, fs, h)
     try
         [y, ~] = TDCBSR_RK4(input_signal, a, b, c, d, r, h);
         
+        % Check for invalid output
+        if any(isnan(y)) || any(isinf(y))
+            fitness = -1000;
+            return;
+        end
+        
         % Calculate SNR (Equation 8)
         fitness = calculate_SNR(y, target_freqs, fs);
         
-        % Penalize if SNR is too low or NaN
-        if isnan(fitness) || isinf(fitness)
+        % Penalize if SNR is too low or invalid
+        if isnan(fitness) || isinf(fitness) || fitness < -100
             fitness = -1000;
         end
-    catch
+        
+    catch ME
+        % If error occurs, return penalty
         fitness = -1000;
+        % Uncomment for debugging:
+        % fprintf('Error in fitness evaluation: %s\n', ME.message);
     end
 end

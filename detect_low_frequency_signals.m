@@ -36,11 +36,12 @@ D = 0.5;  % Noise intensity
 input_signal = s + D * noise;
 
 %% BSO optimization parameters
-param_ranges.a = [0.1, 5];    % Range for parameter a
-param_ranges.b = [0.1, 5];    % Range for parameter b
-param_ranges.c = [0.1, 5];    % Range for parameter c
-param_ranges.d = [0.1, 5];    % Range for parameter d
-param_ranges.r = [0.01, 2];   % Range for coupling coefficient r
+% For low-frequency signals, use smaller parameter ranges for stability
+param_ranges.a = [0.5, 2.5];    % Range for parameter a
+param_ranges.b = [0.5, 2.5];    % Range for parameter b
+param_ranges.c = [0.5, 2.5];    % Range for parameter c
+param_ranges.d = [0.5, 2.5];    % Range for parameter d
+param_ranges.r = [0.1, 1.5];    % Range for coupling coefficient r
 
 max_iter = 100;   % Maximum iterations
 pop_size = 30;    % Population size
